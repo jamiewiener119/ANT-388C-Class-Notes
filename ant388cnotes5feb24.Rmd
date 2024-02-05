@@ -1,0 +1,167 @@
+---
+title: "5feb24notes"
+output: html_document
+date: "2024-02-05"
+---
+```{r}
+library(tidyverse)
+f <- "C:/Users/hijam/Downloads/KamilarAndCooperData.csv"
+d <- read.csv(f, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+as_tibble(d)
+```
+```{r}
+library(tidyverse)
+boxplot(log(d$Body_mass_female_mean))
+stripchart(log(d$Body_mass_female_mean),
+  method = "jitter",
+  col = "blue",
+  vertical = TRUE,
+  add = TRUE)
+```
+
+```{r}
+p <- ggplot(data = d, aes(x = "x", y = log(Body_mass_female_mean))) + geom_boxplot(na.rm = TRUE)
+p
+```
+```{r}
+p <- ggplot(data = d, aes(x = Family, y = log(Body_mass_female_mean))) + geom_boxplot(na.rm = TRUE) + 
+geom_point(color = "blue", position = "jitter")
+p
+```
+```{r}
+p <- p + theme(axis.text.x = element_text(angle = 90))
+p <- p + ylab("log(Female Body Mass)")
+p
+```
+default, frequency = TRUE, frequency on y-axis
+```{r}
+hist(log(d$Body_mass_female_mean))
+```
+```{r}
+hist(log(d$Body_mass_female_mean), freq = FALSE)
+```
+```{r}
+hist(log(d$Body_mass_female_mean), freq = FALSE)
+lines(
+  density(log(d$Body_mass_female_mean), na.rm = TRUE),
+  col = "blue"
+)
+```
+```{r}
+hist(log(d$Body_mass_female_mean), freq = FALSE)
+lines(
+  density(log(d$Body_mass_female_mean), na.rm = TRUE),
+  col = "blue"
+)
+abline(v = quantile(
+  log(d$Body_mass_female_mean),
+  prob = c(0.025,0.975),
+  na.rm = TRUE
+),
+col = "red")
+```
+```{r}
+p <- ggplot(
+  data = d, 
+  aes(log(Body_mass_female_mean))
+  ) 
+p <- p + geom_histogram(binwidth = 2)
+p
+```
+```{r}
+p <- ggplot(
+  data = d, 
+  aes(log(Body_mass_female_mean))
+  ) 
+(p + geom_histogram(binwidth = 2))
+```
+```{r}
+p <- ggplot(
+  data = d, 
+  aes(log(Body_mass_female_mean))
+  ) 
+(p + geom_histogram(bins = 9, aes(y = ..density..)) +
+  geom_density())
+```
+```{r}
+p <- ggplot(
+  data = d, 
+  aes(log(Body_mass_female_mean))
+  ) 
+p <- p + geom_histogram(bins = 9, aes(y = ..density..)) +
+  geom_density() +
+    geom_vline(xintercept = 
+                 quantile(
+                   log(d$Body_mass_female_mean),
+                   prob = c(0.025,0.975),
+                   na.rm = TRUE
+                 ),
+               color = "red")
+p
+```
+```{r}
+plot(x = log(d$Body_mass_female_mean),
+     y = log(d$Brain_Size_Female_Mean))
+```
+```{r}
+p <- ggplot(data = d, aes(
+  x = log(Body_mass_female_mean),
+  y = log(Brain_Size_Female_Mean)
+))
+(p + geom_point(na.rm = TRUE))
+```
+
+```{r}
+p <- ggplot(data = d, aes(
+  x = log(Body_mass_female_mean),
+  y = log(Brain_Size_Female_Mean)
+))
+(p + geom_point(na.rm = TRUE))
+p <- p + geom_point(aes(col = factor(Family)),
+                    na.rm = TRUE)
+p
+```
+I will now modify axes
+```{r}
+p <- ggplot(data = d, aes(
+  x = log(Body_mass_female_mean),
+  y = log(Brain_Size_Female_Mean)
+))
+(p + geom_point(na.rm = TRUE))
+p <- p + geom_point(aes(col = factor(Family)),
+                    na.rm = TRUE) +
+  xlab("log(Female Body Mass)") +
+  ylab("log(Female Brain Size)") +
+  theme(legend.position = "bottom",
+        legend.title = element_blank()) +
+  geom_smooth(method = "lm", na.rm = TRUE)
+p
+```
+**Data Wrangling**
+```{r}
+library(dplyr)
+s <- d[d$Family == "Hominidae" & d$Mass_Dimorphism > 2,]
+s <- filter(d, Family == "Hominidae" & `Mass_Dimorphism` > 2)
+s
+```
+```{r}
+s <- arrange(d, Family, Genus, desc(Body_mass_male_mean))
+s
+```
+```{r}
+s <- summarise(
+  group_by(d, Family),
+  avgF = mean(Body_mass_female_mean, na.rm = TRUE)
+)
+s
+```
+Below, I am instead using base R
+```{r}
+s <- aggregate(d$Body_mass_female_mean ~ d$Family, FUN = "mean", na.rm = TRUE)
+s
+```
+```{r}
+s <- s %>% mutate(new = paste0(Family, "-", avgF))
+s
+```
+
