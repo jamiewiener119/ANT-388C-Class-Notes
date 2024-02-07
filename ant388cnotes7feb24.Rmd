@@ -1,0 +1,112 @@
+---
+title: "ant388cnotes7Feb24"
+output: html_document
+date: "2024-02-07"
+---
+# Functions and Flow Control
+
+## Module 11
+Read and work through examples by Mon. 2/12
+
+Work on finding a paper and dataset for your "Data Analysis Replication" assignment
+
+Submit URL for your repo for Exercise 3 (due Mon. 2/12)
+
+Start looking at Exercise 4 (due Mon. 
+```{r}
+library(tidyverse)
+library(dplyr)
+library(stringr)
+```
+
+```{r}
+d <- read.csv("C:/Users/hijam/Downloads/IMDB-movies.csv")
+```
+**Conditionals**
+
+if (test) {do this} else {do that}
+
+ifelse(test, od this if true, do this if false)
+
+if_else(test, do this if true, do this if false)
+
+case_when (
+case1 ~ result1,
+case2 ~ result2,
+case3 ~ result3,
+TRUE ~ all others
+)
+
+```{r}
+d <- d|> mutate(comedy = if_else(str_detect(genres,"Comedy"), TRUE, FALSE))
+
+```
+str_detect() returns a logical vector with TRUE for each element of string (genres) that matches pattern ("Comedy") and FALSE otherwise
+
+```{r}
+s <- d|> filter(comedy == TRUE)
+nrow(s)
+```
+The above technically works.
+Using summarise(), I can read the number of movies and the number of comedies.
+```{r}
+s <- d|> summarise(count = n(), num_comedy = sum(comedy, na.rm = TRUE))
+```
+```{r}
+d <- d|> mutate(ranking = case_when(
+  averageRating <= 3.3  ~ "low",
+  averageRating <= 6.7 ~ "med",
+  averageRating > 6.7 ~ "high",
+))
+
+```
+```{r}
+g <- d|> group_by(ranking)
+s <- g|> summarise(count = n(), avg_time = mean(runtimeMinutes, na.rm = TRUE))
+```
+**Loops**
+Another means of flow control
+
+Anything we can apply to a whole dataframe, we can loop through each row in a dataframe
+
+Loops (running things iteratively) can slow down processing
+
+In general, don't do loops in code unless real utility
+
+i means index
+
+for (i in 1:. . . .) {do this}
+
+*For this next challenge, going to loop through all the rows in the dataset and print out the cumulative running time of movies*
+
+First, let's practice writing a loop
+```{r}
+for(i in 1:nrow(d)){
+  print(i)
+}
+```
+### ***Oy gevalt***
+
+```{r}
+
+```
+New to resolve an issue below:
+
+t <- 0
+for(i in 1:nrow(d)){
+  t <- ifelse(is.na(d[i,c("runtimeMinutes")])t, t  
+  + d[i,c("runtimeMinutes")])
+  print(t)
+}
+
+Alternate example:
+for (name in c("a","b","c")){
+  d <- read_csv(name, colnames = TRUE)
+}
+
+```{r}
+
+```
+
+### Walking through Wordle exercise
+
