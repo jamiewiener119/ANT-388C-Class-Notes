@@ -1,0 +1,63 @@
+---
+title: "ant388notes12feb24"
+output: html_document
+date: "2024-02-12"
+---
+
+###Functions
+
+**Function pseudo code**
+my_function <- function(<argument list>) {
+  <function code>
+  return(<value>)
+}
+```{r}
+library(tidyverse)
+```
+
+```{r}
+#x should be tabular data
+my_function <- function(X, reps =2){
+  for (i in 1:reps){
+    print(x)
+  }
+  for (i in 1:nrow(x)){
+    print(x[i, ])
+  }
+  return(bind_rows(x,x))
+}
+
+x <- tibble(name = c("Noro","Riley","Jamie"), major = c("Biology","Anthropology","Anthropology"))
+
+my_function(x)
+```
+**Practicing with joins**
+```{r}
+p <- read.csv("C:/Users/hijam/Downloads/papers.csv")
+c <- read.csv("C:/Users/hijam/Downloads/creators.csv")
+```
+
+```{r}
+library(tidyverse)
+p <- p |>
+  separate_wider_delim(cols = Author,
+                       delim = ";",
+                       names = c("First Author","A2","A3","A4"),
+                       too_few = "align_start", too_many = "drop")
+head(p)
+
+c <- c |>
+  distinct()
+head(c)
+
+#Practicing joins
+inner <- inner_join(c,p,by = c("fullName" = "First Author")) #or try
+inner <- inner_join(p,c,by = c("First Author" = "fullName"))
+
+left <- left_join(c,p,by = c("fullName" = "First Author")) #or try
+right <- right_join(p,c,by = c("First Author" = "fullName"))
+
+find_pubs <- tibble(fullName = c("Di Fiore, Anthony"))
+first <- inner_join(find_pubs, p, by = c("fullName" = "First Author"))
+```
+
