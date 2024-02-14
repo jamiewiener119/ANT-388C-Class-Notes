@@ -1,0 +1,118 @@
+---
+title: "ant388notes14feb24"
+output: html_document
+date: "2024-02-14"
+---
+```{r}
+library(mosaic)
+library(radiant)
+```
+
+### Big Ideas
+**Location**
+  - Mean (average)
+  - Median
+  - Mode
+  - Harmonic Mean
+  
+**Spread**
+  Mean Deviation (average of absolute value of deviations from mean)
+  Mean Square Deviation (average of squared deviations from mean) = variance
+  Standard deviation (square root of variance)
+
+Population Variance = a parameter 
+  = SS / N = ∂^2
+  N = population size
+  sum((x-mean(x))^2)/length(x)
+  
+Sample Variance = a statistic
+  = SS/n - 1 = s^2
+  n = sample size
+  sum((x-mean(x))^2)/(length(x) - 1)
+  var()
+
+Population Standard Deviation = a parameter
+  = ∂
+  radiant::sdpop()
+
+Sample Standard Deviation = a statistic 
+  = s
+  sd()
+  
+```{r}
+a <- c(1,2,3,4,5,7,8,9,10)
+
+pop_variance <- function(x){
+  sum((x-mean(x))^2)/length(x)
+}
+
+pop_variance(a)
+
+sample_variance <- function(x){
+  sum((x-mean(x))^2)/(length(x) - 1)
+}
+
+sample_variance(a)
+```
+Some statistics are estimates of the parameters of distributions.
+
+*Let's draw and sample from some mathematical distributions and see how statistics we calculate compare to parameters of distributions*
+
+```{r}
+library(mosaic)
+mu <- 10
+sigma <- 2
+plotDist("norm",mean=mu,sd=sigma,xlab="x",ylab="Frequency")
+```
+```{r}
+s <- rnorm(n=10,mean=10,sd=2) #Creating sample that consists of 10 observations drawn out of a normal distribution with a mean of 10 and standard deviation of 2
+mean(s)
+sd(s)
+```
+```{r}
+s <- rnorm(n=1000,mean=10,sd=2)
+mean(s)
+sd(s)
+```
+*Let's create a sampling distribution for the mean of sample drawn from normal distribution with mean of 10 and sd of 2*
+
+```{r}
+reps <- 500
+sample_dist_mean <-
+  do(reps)*mean(rnorm(n=1000,mean=10,sd=2))
+str(sample_dist_mean)
+#generates a sampling distribution for the mean of our sample
+```
+```{r}
+sample_dist_median <- do(reps)*median(rnorm(n=1000,mean=10,sd=2))
+#generates a sampling distribution for the median of our sample
+```
+
+**Plots of Sampling Distributions**
+
+```{r}
+histogram(~mean,data=sample_dist_mean,xlab="Samp Dist for the Mean")
+```
+```{R}
+histogram(~median,data=sample_dist_median,xlab="Samp Dist for the Median")
+```
+
+The mean of a sampling distribution for a particular statistic should be a really good point estimate of the population value for that statistic
+```{r}
+mean(sample_dist_mean$mean)
+```
+Standard error (SE) = square root of the variance of the sampling distribution = standard deviation of a sampling distribution
+```{r}
+se_mean <- sd(sample_dist_mean$mean)
+se_median <- sd(sample_dist_median$median)
+```
+*The above is an example of programming your own **simulation***
+
+  The SE can be used to derive another measure of uncertainty in a statistic's value: the confience interval, or CI
+  The CI is this another way of describing a statistic's sampling distribution, and it plays a  central role in basic inferential statistics.
+  An interval around our estimate of mean of the sampling distribution for a particular         statistic (usually, mean) and it gives us a range of values into which subsequent estimates of a statistic would be expected to fall some critical proportion of the time, if the sampling      exercise were to be repeated.
+  
+
+
+
+
