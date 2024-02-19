@@ -1,0 +1,109 @@
+---
+title: "ant388notes19feb24"
+output: html_document
+date: "2024-02-19"
+---
+### For Wednesday
+Module 15 (classical null hypothesis significance testing) and Module 13
+(Bernoulli binomial, and Poisson distributions)
+  Probability mass vs. Probability density functions
+
+### Rmd advice
+
+- Text outside of code blocks
+- Formatting on different levels
+- R code chunk options
+    - echo
+    - eval
+    - message
+    - include
+    - fig-height
+    - out-width
+
+### In class: Module 14
+```{r}
+library(tidyverse)
+install.packages("manipulate")
+library(manipulate)
+library(mosaic)
+library(radiant)
+```
+
+Sampling distributions have pretty well defined statistical properties.
+
+If population variance / standard deviation are known (rare!)...
+    ...standard deviation of population/sqrt(sample size)
+    ...= expected standard error in a sample
+
+If we can sample population repeatedly to generate a sampling distribution...
+    ...standard deviation of sampling distribution
+
+If we have a single sample...
+    ...standard deviation of sample/sqrt(sample size)
+    ...= an estimate of standard error
+
+
+```{r}
+library(radiant)
+n <- 10000 #Written in order to easily change values for n, mu, sd
+mu <- 2
+sd <- 4
+d <- rnorm(n,mu,sd)
+
+mean(d)
+sd(d) #sample standard deviation
+4/sqrt(1000) #standard deviation of population/sqrt(sample size)
+sd(d)/sqrt(1000) #standard deviation of sample/sqrt(sample size)
+
+reps <- 1000
+samp_dist <- do(reps) * mean(rnorm(n,mu,sd))
+(se_samp_dist <- sd(samp_dist$mean)) #based on sampling distribution
+```
+
+### Calculating theoretical confidence intervals
+
+Generating a vector of random numbers and calculating the relevant summary statistics:
+```{r}
+n <- 10000 #Written in order to easily change values for n, mu, sd
+mu <- 25
+sd <- 10
+
+set.seed(1)
+
+v <- rnorm(n,mu,sd)
+
+s <- sample(v,size=40,replace=FALSE) 
+#Sampling 40 observations from vector without replacement
+
+(m<-mean(s))
+```
+Assuming the population standard deviation is known..
+```{r}
+(se <- sd/sqrt(length(s)))
+```
+
+Assuming the population standard deviation is unknown...
+```{r}
+(se <- sd(s)/sqrt(length(s)))
+```
+
+
+```{r}
+percent_ci <- 95
+alpha <- 1 - percent_ci/100 #alpha = 0.05
+lower <- m + qnorm(alpha/2) * se #where the qnorm(alpha/2) is the 2.5% quantile 
+                                # of the standard normal distribution
+upper <- m + qnorm(1-alpha/2) * se #where the qnorm(1-alpha/2) is the 97.5% 
+                                  # quantile of the standard normal distribution
+(ci <- c(lower,upper))
+```
+
+Psst! There are potentially simpler ways to do this in Module 14...
+
+...work through examples in Module 14!
+
+```{r}
+
+```
+
+
