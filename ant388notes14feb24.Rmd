@@ -108,7 +108,7 @@ se_median <- sd(sample_dist_median$median)
 ```
 *The above is an example of programming your own **simulation***
 
-  The SE can be used to derive another measure of uncertainty in a statistic's value: the confience interval, or CI
+  The SE can be used to derive another measure of uncertainty in a statistic's value: the confidence interval, or CI
   The CI is this another way of describing a statistic's sampling distribution, and it plays a  central role in basic inferential statistics.
   An interval around our estimate of mean of the sampling distribution for a particular         statistic (usually, mean) and it gives us a range of values into which subsequent estimates of a statistic would be expected to fall some critical proportion of the time, if the sampling      exercise were to be repeated.
   
