@@ -1,0 +1,157 @@
+---
+title: "ant388notes21feb24"
+output: html_document
+date: "2024-02-21"
+---
+
+### Calculating CIs by bootstrapping
+
+n_boot <- 10000
+boot <- vector(length=n_boot) #set up a dummy variable to hold our simulations
+n <- length(x) #bootstrap sample size will be the same length as our sample data
+for (i in 1:n_boot){boot[[i]] <- mean(sample(x,b,replace=TRUE))}
+
+```{r}
+library(tidyverse)
+library(dplyr)
+library(manipulate)
+library(mosaic)
+x <- 10000
+mu <- 25
+sigma <- 10
+n <- 15
+set.seed(1)
+
+v <- rnorm(x,mu,sigma)
+s <- sample(v,size=n,replace=FALSE)
+(m <- mean(s))
+(se <- sd(s)/sqrt(length(s)))
+
+#CI assuming normal distribution
+(percent_ci <- 95)
+(alpha <- 1 - percent_ci/100)
+(lower <- m + qnorm(alpha/2)*se) #lower <- m + qt(p =25,df=14)*se
+(upper <- m + qnorm(1-alpha/2)*se)
+(ci_norm <- c(lower,upper))
+
+#bootstrapping a CI
+n_boot <- 10000
+boot <- vector(length = n_boot) #set up a dummy variable
+n <- length(s)
+# the size of each bootstrap sample should be equivalent to sample
+for (i in 1:n_boot){
+  boot[[i]] <- mean(sample(s,n,replace = TRUE))}
+hist(boot, breaks=25, ylim = c(0,1600), xlab = "Mean", main = "Bootstrap Sampling Distribution")
+
+lower <- quantile(boot,0.025)
+upper <- quantile(boot,0.975)
+(ci_boot <- c(lower,upper))
+
+```
+### Classical hypothesis testing
+
+**Null hypothesis significance testing**
+```{r}
+library(curl)
+f <- "https://raw.githubusercontent.com/difiore/ada-2024-datasets/main/vervet-weights.csv"
+d <- read_csv(f,col_names=TRUE)
+summary(d)
+
+mean(d$weight)
+
+mu <- 5
+x <- d$weight
+n <- length(x)
+m <- mean(x)
+se <- sd(x)/sqrt(n)
+
+z <- (m-mu)/se
+z
+
+p <- 1-pnorm(z)
+p
+
+crtiical_val <- qnorm(0.95)
+alpha <- 0.05
+#one-tailed test
+(ci <- m - qnorm(1-alpha, mean=0, sd=1)*se) #lower limit by hand
+
+#does CI include mu? no!
+
+# two-tailed test
+(ci <- m + c(-1,1)*qnorm(1-alpha/2, m=0, sd=1)*se) #by hand
+
+#t test
+(p <- 1 - pt(z,df=n-1))
+(z)
+
+(critical_val <- qt(0.95,df = n-1))
+alpha <- 0.05
+ci <- c(m-qt(1-alpha, df=n-1)*se,Inf)
+ci
+(t_stat <- t.test(x=x,mu=mu,alternative="greater"))
+```
+**Mod15 Challenge1**
+
+```{r}
+f <- "https://raw.githubusercontent.com/difiore/ada-2024-datasets/main/woolly-weights.csv"
+d <- read_csv(f,col_names=TRUE)
+summary(d)
+```
+```{r}
+mu <- 7.2
+n <- length(d$weight)
+m <- mean(d$weight)
+sd <- sd(d$weight)
+se <- sd(d$weight)/sqrt(n)
+t <- (m-mu)/se
+
+z <- (m-mu)/se
+z
+
+p <- 1-pnorm(z)
+p
+
+critical_val <- qnorm(0.95)
+alpha <- 0.05
+```
+
+```{r}
+# two-tailed test
+(ci <- m + c(-1,1)*qnorm(1-alpha/2, m=0, sd=1)*se) #by hand
+```
+```{r}
+(t_stat <- t.test(d$weight,mu=mu,alternative="two.sided"))
+```
+```{r}
+(p_upper <- 1-pt(abs(t),df=n-1))
+(p_lower <- pt(-1*abs(t),df=n-1))
+(p <- p_upper + p_lower)
+```
+**Two sample t test**
+Hypothesis test for the difference between two means.
+
+df <- (s2^2/n2 + s1^2/n1)^2/((s2^2/n2)^2/(n2 - 1) + (s1^2/n1)^2/(n1 - 1))
+df
+
+**Mod15 Exercise2**
+
+```{r}
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
