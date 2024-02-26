@@ -114,9 +114,10 @@ upper_m <- quantile(boot_m,0.975)
 ```
 ```{r}
 Sp2 <- ((n_f-1)*sd_f^2)+(n_m-1)*sd_m^2/(n_f+n_m-2)
-T = (m_f-m_m-0)/(sqrt(Sp2*(1/n_f+1/n_m)))
+T = (m_m-m_f-0)/(sqrt(Sp2*(1/n_f+1/n_m)))
 t.test(female_data$kernel95,male_data$kernel95, alternative = c("two.sided"))
 ```
 Something is wrong in my Sp2 and/or T calculations by hand above...
 
 **Read Ch 8 and Ch 9 of Ismay and Kim!!!**
+**Module 16**
