@@ -4,26 +4,119 @@ output: html_document
 date: "2024-02-26"
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r}
+library(tidyverse)
+library(mosaic)
+library(readr)
+library(dplyr)
+library(ggplot2)
 ```
 
-## R Markdown
+```{r}
+f <- "https://raw.githubusercontent.com/difiore/ada-2024-datasets/main/tbs-2006-2008-ranges.csv"
+d <- read_csv(f, col_names = TRUE)
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+```
+Starting exercise:
+-Determine mean, SD, SE in "kernel95" HR size for each sex
+-Boxplot comparing "kernel95" size by sex
+-For each sex, generate a bootstrap distribution, resampling data within each sex 10,000 times
+-Plot an appropriate normal distribution over the boostrap distrubution
+-Determine 95% CI in home range size for each sex
+    -Using quantile() method applied to your bootstrap distribution
+     -Using theory-based method based on qnorm()
+```{r}
+female_data <- subset(d,sex.code==1,kernel95)
+male_data <- subset(d,sex.code==2,kernel95)
 ```
 
-## Including Plots
+For females
+```{r}
+(x_f <- female_data$kernel95)
+(n_f <- length(female_data$kernel95))
+(m_f <- mean(female_data$kernel95))
+(sd_f <- sd(female_data$kernel95))
+(se_f <- sd(female_data$kernel95)/sqrt(n_f))
+```
+Generating a bootstrap distribution
+```{r}
+(x_f <- female_data$kernel95)
+(n_f <- length(female_data$kernel95))
+(m_f <- mean(female_data$kernel95))
+(sd_f <- sd(female_data$kernel95))
+(se_f <- sd(female_data$kernel95)/sqrt(n_f))
+set.seed(1)
 
-You can also embed plots, for example:
+v_f <- rnorm(x_f,m_f,sd_f)
+s_f <- sample(v_f,size=n_f,replace=FALSE)
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+#bootstrapping a CI
+n_boot_f <- 10000
+boot_f <- vector(length = n_boot) #set up a dummy variable
+n_f <- length(s_f)
+# the size of each bootstrap sample should be equivalent to sample
+for (i in 1:n_boot_f){
+  boot_f[[i]] <- mean(sample(s_f,n_f,replace = TRUE))}
+hist(boot_f, breaks=25, ylim = c(0,1600), xlab = "Mean", main = "Female Bootstrap Sampling Distribution")
+plotDist("norm",318.8,65.7)
+```
+```{r}
+lower_f <- quantile(boot_f,0.025)
+upper_f <- quantile(boot_f,0.975)
+(ci_boot_f <- c(lower_f,upper_f))
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+For males
+```{r}
+(x_m <- male_data$kernel95)
+(n_m <- length(male_data$kernel95))
+(m_m <- mean(male_data$kernel95))
+(sd_m <- sd(male_data$kernel95))
+(se_m <- sd(male_data$kernel95)/sqrt(n))
+```
+```{r}
+(x_m <- male_data$kernel95)
+(n_m <- length(male_data$kernel95))
+(m_m <- mean(male_data$kernel95))
+(sd_m <- sd(male_data$kernel95))
+(se_m <- sd(male_data$kernel95)/sqrt(n))
+set.seed(1)
+
+v_m <- rnorm(x_m,m_m,sd_m)
+s_m <- sample(v_m,size=n_m,replace=FALSE)
+
+#bootstrapping a CI
+n_boot_m <- 10000
+boot_m <- vector(length = n_boot_m) #set up a dummy variable
+n_m <- length(s_m)
+# the size of each bootstrap sample should be equivalent to sample
+for (i in 1:n_boot_m){
+  boot_m[[i]] <- mean(sample(s_m,n_m,replace = TRUE))}
+hist(boot_m, breaks=25, ylim = c(0,1600), xlab = "Mean", main = "Male Bootstrap Sampling Distribution")
+plotDist("norm",429.7,58.3)
+```
+```{r}
+lower_m <- quantile(boot_m,0.025)
+upper_m <- quantile(boot_m,0.975)
+(ci_boot_m <- c(lower_m,upper_m))
+```
+
+
+
+```{r}
+(p <- ggplot(data = d, aes(x = d$sex, y = d$kernel95)) +
+  geom_boxplot(na.rm = TRUE) + 
+  theme(axis.text.x = element_text(angle = 90)) + #Specifying axis labels
+  ylab("kernel95") + 
+  xlab("Sex"))
+```
+```{r}
+Sp2 <- ((n_f-1)*sd_f^2)+(n_m-1)*sd_m^2/(n_f+n_m-2)
+T = (m_f-m_m-0)/(sqrt(Sp2*(1/n_f+1/n_m)))
+t.test(female_data$kernel95,male_data$kernel95, alternative = c("two.sided"))
+```
+Something is wrong in my Sp2 and/or T calculations by hand above...
+
+**Read Ch 8 and Ch 9 of Ismay and Kim!!!**
