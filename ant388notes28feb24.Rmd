@@ -1,0 +1,228 @@
+---
+title: "ant388notes28feb24"
+output: html_document
+date: "2024-02-28"
+---
+
+```{r}
+install.packages("coin")
+install.packages("jmuOutlier")
+install.packages("infer")
+library(tidyverse)
+library(mosaic)
+library(coin)
+library(survival)
+library(jmuOutlier)
+library(infer)
+library(tidyverse)
+library(readr)
+library(dplyr)
+library(ggplot2)
+```
+
+**Module 16 Challenge**
+```{r}
+species1 <- c(1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0,
+    1, 0)
+species2 <- c(1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0,
+    0, 1, 1, 0, 1, 1, 1)
+```
+
+```{r}
+(actual_diff <- mean(species1) - mean(species2))
+
+# this calculates a difference in proportions
+nperm <- 10000
+
+# using {jmuOutlier} library(jmuOutlier) perm.test(species1, species2,
+# alternative = 'two.sided', plot=FALSE, num.sim = nperm)
+# detach(package:jmuOutlier)
+
+# using our custom function
+output <- perm2samp(species1, species2, stat = "mean_diff", nperm = nperm)
+
+histogram(output$perm_stat, type = "count", ylab = "# Permutations", main = "Histogram of Permutation Distribution",
+    xlab = ifelse(output$type == "less" | output$type == "greater", paste0("One-Sided Test\nProportion of distribution ",
+        output$type, " than test stat = ", output$p_perm), paste0("Two-Sided Test\nProportion of distribution more extreme than test stat = ",
+        output$p_perm)))
+ladd(panel.abline(v = output$test_stat, lty = 3, lwd = 2))
+if (output$type == "two.sided") {
+    ladd(panel.abline(v = -output$test_stat, lty = 3, lwd = 2, col = "red"))
+}
+ladd(panel.text(x = output$test_stat, y = nperm * 0.08, "Test Statistic", srt = 90,
+    pos = 4, offset = 1))
+```
+
+
+
+```{r}
+s1 <- tibble(species = "species1", lactating = species1)
+s2 <- tibble(species = "species2", lactating = species2)
+d <- bind_rows(s1, s2)
+d$lactating <- factor(d$lactating)
+```
+
+Now, use the {infer} workflow to test whether the proportion of lactating females among the captured bats differs between species.
+```{r}
+null_distribution <- d %>%
+    specify(lactating ~ species, success = "1") %>%
+    hypothesize(null = "independence") %>%
+    generate(reps = 1000, type = "permute") %>%
+    calculate(stat = "diff in props", order = c("species1", "species2"))
+
+# NOTE: This runs a LOT slower than our custom permutation function for the
+# same number of reps!
+visualize(null_distribution, bins = 20)
+```
+
+```{r}
+observed_stat <- d %>%
+    specify(lactating ~ species, success = "1") %>%
+    calculate(stat = "diff in props", order = c("species1", "species2"))
+
+visualize(null_distribution, bins = 10) + shade_p_value(observed_stat, direction = "both")
+```
+
+```{r}
+get_p_value(null_distribution, observed_stat, direction = "both")
+```
+This p value is similar to that returned by our custom permutation test!
+
+### In-class notes
+
+Data Analysis Replication project
+- 3 replications: descriptive,inferential,visualization
+
+#### In-class Exercise: PERMUTATION
+
+Loading in the same dataset from 26feb24
+```{r}
+f <- "https://raw.githubusercontent.com/difiore/ada-2024-datasets/main/tbs-2006-2008-ranges.csv"
+d <- read_csv(f, col_names = TRUE)
+female_data <- subset(d,sex=="F",kernel95)
+male_data <- subset(d,sex=="M",kernel95)
+```
+
+Programming our own permutation test
+```{r}
+(obs <- mean(male_data$kernel95) - mean(female_data$kernel95))
+```
+
+Setting up vector that will hold the results of our permutation
+```{r}
+# this calculates a difference in proportions
+nperm <- 10000
+perm <- vector(length = nperm)
+```
+
+In each of my permutations, I'm going to change d and store it is s (so that I can have a copy of d to refer back to as I go)
+```{r}
+s <- d
+
+for (i in 1:nperm){
+  s$sex <- sample(s$sex) #applying sample() to s$sex
+  mean_m <- s |>
+    filter(sex == "M") |>
+    summarize(mean = mean(kernel95)) |>
+    pull()
+  mean_f <- s |>
+    filter(sex == "F") |>
+    summarize(mean = mean(kernel95)) |>
+    pull()
+  perm[[i]] <- mean_m - mean_f
+}
+
+hist(perm)
+```
+
+
+```{r}
+hist(perm)
+abline(v = obs) #If I were breaking the association between sex and HR size, I would see a value as extreme as the obs by random chance
+```
+
+How many observations in our permutation distribution are bigger than obs?
+Getting p-value for 2-tailed test:
+```{r}
+(p <- (sum(perm >= abs(obs)) + sum(perm <= -abs(obs)))/nperm)
+```
+
+Getting p-value for 1-tailed test:
+```{r}
+(p <- sum(perm >= abs(obs))/nperm)
+```
+
+See! It's not so difficult to write your own statistical tests.
+
+Let's walk through using {infer} to do the same thing!
+
+```{r}
+(perm <- d |>
+    specify(formula = kernel95 ~ sex) |>
+    hypothesize(null = "independence") |>
+    generate(reps = nperm, type = "permute") |>
+    calculate(stat = "diff in means", order = c("M", "F")))
+
+# NOTE: This runs a LOT slower than our custom permutation function for the
+# same number of reps!
+(visualize(perm, bins = 20))
+```
+
+```{r}
+(visualize(perm, bins = 20) +
+  shade_p_value(obs_stat = obs, direction = "both"))
+```
+
+```{r}
+(get_p_value(perm, obs, direction = "both"))
+```
+
+
+#### In-class Exercise: REGRESSION
+
+Basic premise of modeling is t oexplore the relationship between:
+  -an outcome variable (typically denoted as y), as called a dependent variable or repsonse variable and...
+  -one or more explanatory/preidctor variables, also called independent variable(s) or covariates(s)
+
+Simple regression
+Multiple regression
+ANOVA/ANCOVA
+"Generalized" linear regression
+
+Before modeling, start with exploratory data analysis
+  Univariate summary stats
+  Bivaritate summary stats
+    Covariance
+    Correlation coefficient
+    
+Loading in the **ZOMBIE APOCALYPSE SURVIVOR DATASET**
+```{r}
+f <- "https://raw.githubusercontent.com/difiore/ada-2024-datasets/main/zombies.csv"
+d <- read_csv(f, col_names=TRUE)
+```
+plot the relationsnip between weight and height
+```{r}
+library(ggplot2)
+(p <- ggplot(data = d, aes( #Building plot object
+  x = weight, #I am log-transforming the variables to reduce the skew of the distribution
+  y = height,
+  geom_point(na.RM=TRUE)
+)))
+```
+
+Covariance
+```{r}
+cov(d$height,d$weight)
+```
+
+Correlation
+```{r}
+cor(d$height,d$weight)
+```
+
+Formula notation for regression
+  We typically model the outcome variable y as a linear function of the explanatory/predictor variables
+  
+  The beta values in this equation are reffered to as "regression coefficicents" and it is those coefficients that our analysis is trying to estimate, while minimizing, according to some criterion, the error term
+  
+  
