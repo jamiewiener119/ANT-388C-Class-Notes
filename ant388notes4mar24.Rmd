@@ -1,0 +1,95 @@
+---
+title: "ant388notes4mar24"
+output: html_document
+date: "2024-03-04"
+---
+
+*Ordinary Least Squares*
+  Find coefficients that minimize "the residuals", i.e. the difference between
+  observed and expected y values.
+
+```{r}
+library(manipulate)
+library(tidyverse)
+install.packages("lmodel2")
+install.packages("broom")
+library(patchwork)
+library(infer)
+```
+
+```{r}
+f <- "https://raw.githubusercontent.com/difiore/ada-2024-datasets/main/zombies.csv"
+d <- read_csv(f,col_names = TRUE)
+(head(d))
+```
+
+```{r}
+d <- mutate(d, centered_height = height - mean(height))
+d <- mutate(d, centered_weight = weight - mean(weight))
+
+p1 <- ggplot(data=d, aes(x=weight,y=height)) + geom_point()
+p2 <- ggplot(data=d, aes(x=centered_weight,y=centered_height)) + geom_point()
+
+(p1 + p2)
+```
+
+Generating a function that plots a scatter of points and a line that runs through that scatter of points which we can determine the equation of:
+```{r}
+slope.test <- function(beta1, data) {
+    g <- ggplot(data = data, aes(x = centered_weight, y = centered_height))
+    g <- g + geom_point()
+    g <- g + geom_abline(intercept = 0, slope = beta1, size = 1, colour = "blue",
+        alpha = 1/2)
+    ols <- sum((data$centered_height - beta1 * data$centered_weight)^2)
+    g <- g + ggtitle(paste("Slope = ", beta1, "\nSum of Squared Deviations = ", round(ols,
+        3)))
+    g
+}
+
+(manipulate(slope.test(beta1, data = d), beta1 = slider(-1, 1, initial = 0, step = 0.005)))
+#able to get interactive slider typing in console with new Rscript doc
+```
+Calculating β1 by hand...
+```{r}
+(β1 <- cov(d$weight,d$height)/var(d$weight))
+(β0 <- mean(d$height) - β1*(mean(d$weight)))
+```
+
+**Challenge**
+
+```{r}
+f <- "https://raw.githubusercontent.com/difiore/ada-2024-datasets/main/Street_et_al_2017.csv"
+d <- read_csv(f,col_names = TRUE)
+```
+
+Plot brain size (ECV) as a function of social group size, longevity, juvenile period length, and reproductive lifespan (separate plots for each). 
+```{r}
+(p1 <- ggplot(data=d, aes(x=Group_size,y=ECV)) + geom_point())
+```
+```{r}
+(p2 <- ggplot(data=d, aes(x=Longevity,y=ECV)) + geom_point())
+```
+```{r}
+(p3 <- ggplot(data=d, aes(x=Weaning,y=ECV)) + geom_point())
+```
+```{r}
+(p4 <- ggplot(data=d, aes(x=Repro_lifespan,y=ECV)) + geom_point())
+```
+
+Derive by hand the ordinary least squares regression coefficients B1 and B0 for ECV ~ social group size
+```{r}
+s <- d |> filter(!is.na(Group_size),!is.na(ECV))
+(β1 <- cov(s$Group_size,s$ECV)/var(s$Group_size))
+(β0 <- mean(s$ECV) - β1*(mean(s$Group_size)))
+```
+
+Confirm that you get the same results using the lm() function
+  m <- lm(formula = ECV ~ Group_size, data=d)
+  m <- lm(ECV ~ Group_size,d)
+```{r}
+(m <- lm(ECV ~ Group_size,s))
+```
+
+Repeat the analysis above for different groups of primates (Catarrhini, Platyrrhini, Strepsirhini) separately. Do your regression coefficients differ? How might you determine this?
+
+
