@@ -87,9 +87,19 @@ Confirm that you get the same results using the lm() function
   m <- lm(formula = ECV ~ Group_size, data=d)
   m <- lm(ECV ~ Group_size,d)
 ```{r}
-(m <- lm(ECV ~ Group_size,s))
+(m <- lm(ECV ~ Group_size,d))
 ```
-
-Repeat the analysis above for different groups of primates (Catarrhini, Platyrrhini, Strepsirhini) separately. Do your regression coefficients differ? How might you determine this?
+```{r}
+(summary(m))
+```
+```{r}
+(names(m))
+```
+```{r}
+(m$coefficients)
+```
+```{r}
+(m$model)
+```
 
 
