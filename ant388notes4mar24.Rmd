@@ -78,9 +78,9 @@ Plot brain size (ECV) as a function of social group size, longevity, juvenile pe
 
 Derive by hand the ordinary least squares regression coefficients B1 and B0 for ECV ~ social group size
 ```{r}
-s <- d |> filter(!is.na(Group_size),!is.na(ECV))
-(β1 <- cov(s$Group_size,s$ECV)/var(s$Group_size))
-(β0 <- mean(s$ECV) - β1*(mean(s$Group_size)))
+d2 <- d |> filter(!is.na(Group_size),!is.na(ECV))
+(β1 <- cov(d2$Group_size,d2$ECV)/var(d2$Group_size))
+(β0 <- mean(d2$ECV) - β1*(mean(d2$Group_size)))
 ```
 
 Confirm that you get the same results using the lm() function
@@ -136,5 +136,11 @@ s <- d |> filter(!is.na(Group_size),!is.na(ECV),Taxonomic_group=="Strepsirhini")
 Spend some trying working on a permutation test to evaluate whether the above 
 regression coefficients differ...
 
+I don't believe the below is correct...
+
+```{r}
+library(lmodel2)
+(mII <- lmodel2(ECV ~ Group_size, data=d2,range.y="relative",range.x="relative",nperm=1000))
+```
 
 
