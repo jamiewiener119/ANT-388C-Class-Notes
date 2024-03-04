@@ -101,5 +101,40 @@ Confirm that you get the same results using the lm() function
 ```{r}
 (m$model)
 ```
+```{r}
+(broom::tidy(m))
+```
+```{r}
+(broom::glance(m))
+```
+```{r}
+library(broom)
+```
+
+Repeat the analysis above for different groups of primates (Catarrhini, Platyrrhini, Strepsirhini) separately. Do you regression coefficients differ? How might you determine this?
+
+For catarrhines...
+```{r}
+c <- d |> filter(!is.na(Group_size),!is.na(ECV),Taxonomic_group=="Catarrhini")
+(β1 <- cov(c$Group_size,c$ECV)/var(c$Group_size))
+(β0 <- mean(c$ECV) - β1*(mean(c$Group_size)))
+```
+
+For platyrrhines...
+```{r}
+p <- d |> filter(!is.na(Group_size),!is.na(ECV),Taxonomic_group=="Platyrrhini")
+(β1 <- cov(p$Group_size,p$ECV)/var(p$Group_size))
+(β0 <- mean(p$ECV) - β1*(mean(p$Group_size)))
+```
+
+For strepsirhines...
+```{r}
+s <- d |> filter(!is.na(Group_size),!is.na(ECV),Taxonomic_group=="Strepsirhini")
+(β1 <- cov(s$Group_size,s$ECV)/var(s$Group_size))
+(β0 <- mean(s$ECV) - β1*(mean(s$Group_size)))
+```
+Spend some trying working on a permutation test to evaluate whether the above 
+regression coefficients differ...
+
 
 
