@@ -1,0 +1,180 @@
+---
+title: "ant388notes6mar24"
+output: html_document
+date: "2024-03-06"
+---
+
+**Over Spring Break**
+
+Exercise-09
+
+Read Module 19: Elements of Regression Analysis
+
+
+# Module 19
+
+## Elements of Regression Analysis
+
+### Analysis of Variance Tables
+
+The goal of regressions is to partition variance in the outcome/response variable among different sources i.e. into that explained by the regression model itself versus the leftover error or residual variance
+
+We can separate or partition the total variation in our y (response) variable (the sum of square of y, or SSY) into that explained by our model (the regression sum of squares, or SSR) and that which is left over as error (the error sum of squares, or SSE)))
+
+SSY = SSR + SSE
+
+```{r}
+library(tidyverse)
+library(dplyr)
+library(mosaic)
+```
+
+
+```{r}
+f <- "https://raw.githubusercontent.com/difiore/ada-2024-datasets/main/zombies.csv"
+(d <- read_csv(f,col_names = TRUE))
+```
+
+```{r}
+(m <- lm(data=d,height ~ weight))
+```
+
+```{r}
+(SSY <- sum((m$model$height - mean(m$model$height))^2))
+```
+
+```{r}
+(SSR <- sum((m$fitted.values - mean(m$model$height))^2))
+```
+
+```{r}
+(SSE <- sum((m$model$height - m$fitted.values)^2))
+```
+
+```{r}
+(SSR + SSE)
+```
+
+From here, we can calculate the variance in each of these components (typically referred to as the *mean square*) by dividing each sum of square by its corresponding degrees of freedom (recall that a variance can be thought of as an average sum of squares)
+
+The number of degrees of freedom for the total sum of squares (SSY) is n-1. We need to estimate one parameter from our data (the mean value of u) before we can calculate SSY.
+
+The degrees of freedom for the regression sum of squares (SSR) is equal to the number of predictor variables (p). This is because, given a regression equation, we need to know only the value of p predictor variable s in order to calculate the predicted value of response variable.
+
+The number of degrees of freedom for the error of sum of squares (SSE) is equal to n-(p+1) (i.e. n-p-1) because we need to estimate p+1 parameters (an intercept plus a coefficient for each predictor) 
+
+```{r}
+#(MSY <- SSY/df_y) #SSY/(nrow(d)-1)
+(MSY <- SSY/999)
+```
+
+```{r}
+#(MSR <- SSR/df_regression) #SSY/1
+(MSR <- SSR/1)
+```
+
+```{r}
+#(MSE <- SSY/df_error) #SSY/(nrow(d)-2)
+(MSE <- SSE/998)
+```
+
+F ratio
+```{r}
+(fratio <- MSR/MSE)
+```
+
+```{r}
+(pf(q=fratio,df1=1,df2=998,lower.tail=FALSE))
+```
+
+**Instead of by hand, can use R functions:**
+```{r}
+(a <- aov(data=d,height~weight))
+(summary(a))
+```
+
+```{r}
+m <- lm(data=d,height~weight)
+(summary(a))
+(summary.aov(m))
+```
+
+An R squared value= the fraction of the total variation present in our response variable that is explained by our model, oro, as we defined above SSR/SSY
+
+```{r}
+(rsq <- SSR/SSY)
+```
+
+### Challenge
+
+```{r}
+f <- "https://raw.githubusercontent.com/difiore/ada-2024-datasets/main/Street_et_al_2017.csv"
+d <- read_csv(f,col_names = TRUE)
+(m <- lm(formula = logECV~logBM,data=d2))
+(summary(m))
+```
+
+```{r}
+d2 <- d |> drop_na(Body_mass, ECV) |>
+  mutate(logECV=log(ECV),logBM=log(Body_mass))
+(β1 <- cov(d2$logBM,d2$logECV)/var(d2$logBM))
+(β0 <- mean(d2$logECV) - β1*(mean(d2$logBM)))
+```
+
+
+```{r}
+library(broom)
+(tidy(m))
+```
+
+```{r}
+(SSY <- sum((m$model$logECV - mean(m$model$logECV))^2))
+(SSR <- sum((m$fitted.values - mean(m$model$logECV))^2))
+(SSE <- sum((m$model$logECV - m$fitted.values)^2))
+```
+```{r}
+df_y <- 181
+df_r <- 1
+df_e <- 180
+
+(MSY <- SSY/df_y)
+(MSR <- SSR/1)
+(MSE <- SSE/182)
+```
+
+```{r}
+(fratio <- MSR/MSE)
+```
+
+```{r}
+(pf(q=fratio,df1=1,df2=998,lower.tail=FALSE))
+```
+
+```{r}
+(rsq <- SSR/SSY)
+```
+
+```{r}
+(summary(m))
+(summary.aov(m))
+```
+
+```{r}
+(p1 <- ggplot(data=d2, aes(x=logBM,y=logECV)) + geom_point() + geom_smooth(method = "lm"))
+```
+
+### Standard Errors of Coefficients
+
+```{r}
+(SSX <- sum((m$model$logBM - mean(m$model$logBM))^2))
+(SEbeta1 <- sqrt(MSE/SSX))
+```
+
+```{r}
+(SEbeta0 <- sqrt((MSE*sum(m$model$logBM))/(182*SSX)))
+```
+
+```{r}
+(tidy(m))
+```
+
