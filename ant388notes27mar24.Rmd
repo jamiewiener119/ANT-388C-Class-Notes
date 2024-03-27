@@ -44,3 +44,60 @@ m1 <- lm(log(Range.Size) ~ log(Mass) + Primary.Lifestyle, data = d)
 summary(m)
 ```
 
+```{r}
+m <- lm(height ~ weight + age + gender, data = z)
+summary(m)
+```
+
+```{r}
+ci <- predict(m, newdata = data.frame(weight = 132, age = 29, gender = "Male"), interval = "confidence", level = 0.95)
+ci
+```
+
+```{r}
+effect_plot(m, pred = weight, interval = TRUE, int.type = "confidence", int.width = 0.95, plot.points = TRUE)
+```
+```{r}
+plot_summs(m)
+```
+```{r}
+plot_summs(m, plot.distributions = TRUE, rescale.distributions = TRUE)
+```
+```{r}
+tidy(m)
+```
+
+```{r}
+library(MASS)
+library(AICcmodavg)
+library(MuMIn)
+library(tidyverse)
+
+f <- "https://raw.githubusercontent.com/difiore/ada-2024-datasets/main/AVONETdataset1.csv"
+d <- read_csv(f,col_names = TRUE)
+
+d <- d |> mutate(logMass = log(Mass),
+                 logRS = log(Range.Size),
+                 logBeak = log(Beak.Length_Culmen),
+                 logTarsus = log(Tarsus.Length),
+                 Migration = as.factor(Migration))
+
+m1 <- lm(data = d, logBeak ~ logRS * Migration) #full model
+m2 <- lm(data = d, logBeak ~ logRS + Migration) #model without interaction term
+m3 <- lm(data = d, logBeak ~ logRS) #model with one predictor
+m4 <- lm(data = d, logBeak ~ Migration) #model with one predictor
+m5 <- lm(data =d, logBeak ~ 1) #intercept only model
+```
+```{r}
+(m1)
+(m2)
+(m3)
+(m4)
+(m5)
+```
+
+```{r}
+anova(m2,m1,test = "F")
+```
+
+
