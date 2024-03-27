@@ -1,0 +1,32 @@
+---
+title: "ant388notes27mar24"
+output: html_document
+date: "2024-03-27"
+---
+
+```{r}
+library(tidyverse)
+library(car)
+library(jtools)
+library(broom)
+```
+
+
+```{r}
+f <- "https://raw.githubusercontent.com/difiore/ada-2024-datasets/main/zombies.csv"
+z <- read_csv(f,col_names = TRUE)
+z <- z |> select("Species1","Family1","Order1","Beak.Length_Culmen","Beak.Width","Beak.Depth","Tarsus.Length","Wing.Length","Tail.Length","Mass","Habitat","Migration","Trophic.Level","Trophic.Niche","Min.Latitude","Max.Latitude","Centroid.Latitude","Primary.Lifestyle","Range.Size")
+```
+
+
+```{r}
+f <- "https://raw.githubusercontent.com/difiore/ada-2024-datasets/main/AVONETdataset1.csv"
+d <- read_csv(f,col_names = TRUE)
+```
+
+
+```{r}
+m <- lm(height ~ weight + age+ gender, data = z)
+summary(m)
+```
+
